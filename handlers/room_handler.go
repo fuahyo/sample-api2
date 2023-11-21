@@ -6,6 +6,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/jmoiron/sqlx"
+	"gopkg.in/go-playground/validator.v9"
 )
 
 type RoomHandler struct {
@@ -21,21 +22,37 @@ type ApiResponseData struct {
 	Data []models.AvailableRoom `json:"data"`
 }
 
+// CustomValidator struct to hold the validator
+type CustomValidator struct {
+	validator *validator.Validate
+}
+
+// ValidateStruct validates a struct and returns error if validation fails
+func (cv *CustomValidator) ValidateStruct(obj interface{}) error {
+	return cv.validator.Struct(obj)
+}
+
+func NewCustomValidator() *CustomValidator {
+	return &CustomValidator{validator: validator.New()}
+}
+
 func (h *RoomHandler) GetAvailableRoomsByReservationDetail(c *gin.Context) {
 	var apiResponse ApiResponseData
-
 	var availableRoom []models.AvailableRoom
 	var reservation models.Reservation
-	if err := c.BindJSON(&reservation); err != nil {
+
+	// Bind query parameters
+	if err := c.ShouldBindQuery(&reservation); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request"})
 		return
 	}
 
-	// Perform a single validation on the detailStartDatetime field
-	// if err := h.validate.Var(reservation.DetailStartDatetime, "required"); err != nil {
-	// 	c.JSON(http.StatusBadRequest, gin.H{"errorrr": err.Error()})
-	// 	return
-	// }
+	// Custom validation
+	cv := NewCustomValidator()
+	if err := cv.ValidateStruct(reservation); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"validationError": err.Error()})
+		return
+	}
 
 	query := `
 		EXEC spGetAvailableRoomsByReservationDetail 
@@ -61,10 +78,3 @@ func (h *RoomHandler) GetAvailableRoomsByReservationDetail(c *gin.Context) {
 
 	c.JSON(http.StatusOK, apiResponse)
 }
-
-// func NewRoomHandler(db *sqlx.DB) *RoomHandler {
-// 	return &RoomHandler{
-// 		DB:       db,
-// 		validate: validator.New(),
-// 	}
-// }

@@ -6,11 +6,13 @@ import (
 	"sample-api2/models"
 
 	"github.com/gin-gonic/gin"
+	// "github.com/go-playground/validator/v10"
 	"github.com/jmoiron/sqlx"
 )
 
 type ReservationHandler struct {
 	DB *sqlx.DB
+	// validate *validator.Validate // Add this line
 }
 
 func (h *ReservationHandler) GetAllReservationsz(c *gin.Context) {
@@ -116,6 +118,13 @@ func (h *ReservationHandler) UpdateReservation(c *gin.Context) {
 		return
 	}
 
+	// Validate the Purpose field
+	// if err := h.validate.Var(&reservation.Purpose, "required"); err != nil {
+	// 	c.JSON(http.StatusBadRequest, gin.H{"error param": err.Error()})
+	// 	return
+	// }
+
+	// Update the database
 	_, err = h.DB.Exec("UPDATE ReservationDetail SET purpose=? WHERE detailResId=?", reservation.Purpose, id)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update person"})

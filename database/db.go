@@ -11,11 +11,11 @@ var db *sqlx.DB
 
 func ConnectDB() (*sqlx.DB, error) {
 	// Replace with your SQL Server database credentials
-	server := "CSIJKTSAPP06"
+	server := "server"
 	port := 1433
-	user := "webapps"
-	password := "supernova"
-	dbName := "Reserva2.0"
+	user := "username"
+	password := "password"
+	dbName := "DB"
 
 	// Create the SQL Server connection string
 	connStr := fmt.Sprintf("server=%s;user id=%s;password=%s;port=%d;database=%s",
